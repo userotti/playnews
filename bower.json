@@ -1,0 +1,18 @@
+{
+  "name": "playnews",
+  "description": "phaser games",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "homepage": "playnews.co.za",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "phaser": "~2.4.7"
+  }
+}
