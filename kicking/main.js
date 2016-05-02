@@ -1,170 +1,149 @@
+window.onload = function() {
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update/*, render: render*/ });
-
-function preload() {
-
-  // game.load.image('ball', 'z.png');
-  // game.load.image('bg', 'capetown-bg.jpg');
-  //
-  // game.load.image('cash1', '100RAND.jpg');
-  //
-  // game.load.audio('boden', ['dance_song.mp3']);
-  // game.load.audio('hit', ['cashregister.mp3']);
+    var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.CANVAS);
 
 
-}
-
-var sprite;
-var s;
-var music;
-var hit;
-
-function makeCashy() {
-
-  var point = new Phaser.Point(game.world.centerX + (Math.random() - Math.random())*500, game.world.height + 100);
-  var cash = game.add.sprite(point.x, point.y, 'cash1');
-
-  cash.scale.x = 0.3;
-  cash.scale.y = 0.3;
-  cash.anchor.x = 0.5;
-  cash.anchor.y = 0.5;
-
-  game.physics.enable(cash, Phaser.Physics.ARCADE);
-  cash.body.velocity.y = -(Math.random() * 2 + 1.5)*150;
-  cashies.add(cash);
-
-}
-
-function create() {
-  //game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
-
-  //game.input.touch.preventDefault = false;
-
-  music = game.add.audio('boden');
-  hit = game.add.audio('hit');
-
-  game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
-  game.input.onDown.add(gofull, this);
-
-  music.loopFull();
-
-  //game.input.onDown.add(gofull, this);
-
-  background_image = game.add.sprite(-game.world.centerX, 0, 'bg');
-  game.physics.enable(background_image, Phaser.Physics.ARCADE);
-
-  background_image.scale.x = 1.0;
-  background_image.scale.y = 1.0;
-
-
-  cashies = game.add.group();
-
-  for (var i = 0; i < 100; i++){
-    game.time.events.add(Phaser.Timer.SECOND * (i + (Math.random()-Math.random())), makeCashy, this);
-  }
-
-  top_level = game.add.group();
-  zuma = game.add.sprite(game.world.centerX, 75, 'ball');
-  game.physics.enable(zuma, Phaser.Physics.ARCADE);
-  zuma.scale.x = 0.7;
-  zuma.scale.y = 0.7;
-  zuma.anchor.x = 0.5;
-  zuma.anchor.y = 0.5;
-
-  zuma.rotation = 3.14;
-
-  top_level.add(zuma);
-
-
-
-
-  fund = game.add.text(10, game.world.height-40, '');
-  fund.style.fill = '#ffffff';
-  fund.style.backgroundColor = '#000000';
-  fund.amount = 0;
-
-}
-
-function gofull() {
-
-  // if (game.scale.isFullScreen)
-  // {
-  //     game.scale.stopFullScreen();
-  // }
-  // else
-  // {
-  game.scale.startFullScreen(false);
-  //}
-
-}
-
-function collisionHandler (obj1, obj2) {
-
-  fund.amount += 100;
-  obj2.destroy();
-  hit.play();
-
-  // zuma.scale.x = 0.3 + (1 * fund.amount/10000);
-  // zuma.scale.y = 0.3 + (1 * fund.amount/10000);
-
-
-
-}
-
-function processHandler (zuma, cashy) {
-
-  return true;
-
-}
-
-function update() {
-
-  if (game.input.mousePointer.isDown)
-  {
-    game.physics.arcade.moveToPointer(zuma, 400);
-    if (Phaser.Rectangle.contains(zuma.body, game.input.x, game.input.y))
-    {
-      zuma.body.velocity.setTo(0, 0);
+    var play = function(game){
+        play.drag_count = 0;
+        play.start_counting = false;
+        play.swipe_vector = new Phaser.Point(0,0);
+        play.kicked = false;
     }
-  }
-  else
-  {
-    zuma.body.velocity.setTo(0, 0);
-  }
 
 
-  if (game.physics.arcade.collide(zuma, cashies, collisionHandler, null, this))
-  {
-    console.log('boom');
-  }
+    play.reset = function(){
+        play.ball.x = -Math.random()*200 + Math.random()*200 + (game.width/2);
+        play.ball.y = game.height - (game.height/7);
 
-  zuma.body.velocity.x = 0;
+        play.ball.anchor.x = 0.5;
+        play.ball.anchor.y = 0.5;
 
-  if (game.input.activePointer.x - 100 > zuma.body.x){
-    zuma.body.velocity.x = 250;
-  }
-  background_image.body.y -= 0.05;
+        play.ball.scale.x = (game.width/5) / game.width;
+        play.ball.scale.y = (game.width/5) / game.width;
 
+        play.kicked = false;
 
-  if (game.input.activePointer.x < zuma.body.x){
-    zuma.body.velocity.x = -250;
-  }
+        play.posts.anchor.x = 0.5;
+        play.posts.anchor.y = 1;
+
+        play.posts.x = -Math.random()*100 + Math.random()*100 + (game.width/2);
+        play.posts.y = (game.height/2) + 50;
 
 
 
 
-  cashies.forEach(function(cashy){
-    cashy.rotation += 0.02;
-  })
+    }
+
+    play.prototype = {
+        preload:function(){
+            game.load.image('grass', 'grass.jpg');
+            game.load.image('crowd', 'crowd2.jpg');
+            game.load.image('ball', 'rugby_ball.png');
+            game.load.image('posts', 'posts.png');
 
 
-  fund.text = '  NKANDLA FUND    R' + fund.amount + '  ';
+
+        },
+        create:function(){
+
+            var grass = game.add.sprite(0, 0, 'grass');
+            grass.x = game.width/2;
+            grass.y = (game.height/2) + grass.height/2;
+
+            grass.anchor.x = 0.5;
+            grass.anchor.y = 0.5;
+
+            var crowd = game.add.sprite(0, 0, 'crowd');
+            crowd.x = game.width/2;
+            crowd.y = (game.height/2);
+
+            crowd.anchor.x = 0.5;
+            crowd.anchor.y = 1;
+            crowd.scale.x = 0.4;
+            crowd.scale.y = 0.4;
+
+            play.posts = game.add.sprite(0, 0, 'posts');
+            play.ball = game.add.sprite(0, 0, 'ball');
+            play.posts.scale.x = 0.5;
+            play.posts.scale.y = 0.5;
+
+
+            play.reset();
+
+
+            var swipeCoordX,
+                swipeCoordY,
+                swipeCoordX2,
+                swipeCoordY2,
+                swipeMinDistance = 50;
+
+            game.input.onDown.add(function(pointer) {
+
+                if (!play.kicked){
+                    swipeCoordX = pointer.clientX;
+                    swipeCoordY = pointer.clientY;
+
+                    play.start_counting = true;
+                    play.drag_count = 0;
+                }
+
+
+            }, this);
+
+            game.input.onUp.add(function(pointer) {
+
+                if (!play.kicked){
+                    swipeCoordX2 = pointer.clientX;
+                    swipeCoordY2 = pointer.clientY;
+
+                    play.start_counting = false;
+
+                    play.swipe_vector.x = swipeCoordX2-swipeCoordX;
+                    play.swipe_vector.y = swipeCoordY2-swipeCoordY;
+
+                    console.log('play.swipe_vector', play.swipe_vector);
+                    play.drag_count = 0;
+
+                    play.kicked = true;
 
 
 
+                }
+
+
+            }, this);
+
+        },
+
+        update:function() {
+
+            if (play.start_counting) {
+                play.drag_count++
+            }
+
+            if (play.kicked) {
+                play.ball.x += play.swipe_vector.x / 25;
+                play.ball.y += play.swipe_vector.y / 25;
+
+                play.swipe_vector.y += 5;
+
+                play.ball.rotation += 0.3;
+
+                play.ball.scale.x -= 0.002;
+                play.ball.scale.y -= 0.002;
+
+                if (play.ball.y > game.height){
+                    play.reset();
+                }
+
+
+            }
+
+        },
+
+    }
+
+
+    game.state.add("play",play);
+    game.state.start("play");
 }
-
-
-//function render() {
-//    game.debug.soundInfo(music, 20, 32);
-//}
